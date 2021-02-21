@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "459391948732",
+    "project_id": "sombreroapp-ab464",
+    "storage_bucket": "sombreroapp-ab464.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:459391948732:android:b512a5796994fda191bdb9",
+        "android_client_info": {
+          "package_name": "com.manuelsilva.sombreroapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "459391948732-nfhia5ou07r4bh02s8r48frocdod8ei1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHjndbC2gKxMceEAqIAhYveAcRRZ3nAho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "459391948732-nfhia5ou07r4bh02s8r48frocdod8ei1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
