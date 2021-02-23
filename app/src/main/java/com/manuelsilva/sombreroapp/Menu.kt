@@ -43,7 +43,7 @@ class Menu : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     private fun abrirLoginActivity() {
         val intent =  Intent(AppGeneral.CONTEXT, LoginActivity::class.java)
-        AppGeneral.CONTEXT.startActivity(intent)
+        this.startActivity(intent)
     }
 
     private fun listarProductos(filter: String) {
@@ -64,7 +64,7 @@ class Menu : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         btnCarrito = findViewById(R.id.btnAbrirCarrito)
         btnCarrito.setOnClickListener {
             val intent =  Intent(AppGeneral.CONTEXT, CarritoActivity::class.java)
-            AppGeneral.CONTEXT.startActivity(intent)
+            this.startActivity(intent)
         }
 
     }

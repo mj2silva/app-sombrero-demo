@@ -8,6 +8,7 @@ import com.manuelsilva.sombreroapp.data.Producto
 import java.sql.Timestamp
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class FirebaseAdmin {
     public interface IMyCallBack {
@@ -26,10 +27,22 @@ class FirebaseAdmin {
     }
 
     public interface ICallbackGetPedidos {
-        fun onCallback(value: ArrayList<ItemCarrito>?)
+        fun onCallback(value: ArrayList<Pedido>?)
+    }
+
+    public interface ICallbackGetPedido {
+        fun onCallback(value: ArrayList<Producto>?, cantidades: ArrayList<Int>?)
     }
 
     public interface ICallbackEdit {
+        fun onCallback(value: Producto)
+    }
+
+    public interface ICallbackGetCliente {
+        fun onCallback(value: Cliente)
+    }
+
+    public interface ICallbackGetProducto {
         fun onCallback(value: Producto)
     }
 
@@ -125,7 +138,7 @@ class FirebaseAdmin {
         }
     }
 
-    fun obtenerProducto(id: String, MyCallBack: ICallbackEdit) {
+    fun obtenerProducto(id: String, MyCallBack: ICallbackGetProducto) {
         val db = AppGeneral.DB
         db.collection(AppGeneral.TABLENAME)
             .document(id)
@@ -151,6 +164,32 @@ class FirebaseAdmin {
                     exception ->
                 Toast.makeText(AppGeneral.CONTEXT,"No hay Registros",Toast.LENGTH_LONG).show()
             }
+    }
+
+    fun obtenerCliente(id: String, MyCallBack: ICallbackGetCliente) {
+        val db = AppGeneral.DB
+        db.collection(AppGeneral.TABLECLIENTENAME)
+                .document(id)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document != null) {
+                        val data = document.data
+                        val cliente = Cliente(
+                                document.id as String?,
+                                data?.get("nombres")?.toString() as String?,
+                                data?.get("apellidos")?.toString() as String?,
+                                data?.get("celular")?.toString() as String?,
+                                data?.get("direccion")?.toString() as String?,
+                        )
+                        MyCallBack.onCallback(cliente)
+                    } else {
+                        Toast.makeText(AppGeneral.CONTEXT,"No se encontró el registro",Toast.LENGTH_LONG).show()
+                    }
+                }
+                .addOnFailureListener() {
+                    exception ->
+                    Toast.makeText(AppGeneral.CONTEXT,"No hay Registros",Toast.LENGTH_LONG).show()
+                }
     }
 
     fun agregarCliente(cliente: Cliente, MyCallBack: ICallbackInsertCliente)
@@ -196,10 +235,10 @@ class FirebaseAdmin {
     }
 
     fun obtenerListaDePedidos(fecha: Long, MyCallBack: ICallbackGetPedidos) {
-        var pedidos : ArrayList<ItemCarrito> = ArrayList<ItemCarrito>()
+        var pedidos : ArrayList<Pedido> = ArrayList<Pedido>()
         var productos : ArrayList<Producto>
         var startDate = com.google.firebase.Timestamp(fecha / 1000, 0)
-        var finishDate = com.google.firebase.Timestamp((fecha + 8600000) / 1000, 0)
+        var finishDate = com.google.firebase.Timestamp((fecha + 86400000) / 1000, 0)
         //Toast.makeText(AppGeneral.CONTEXT,startDate.toString(),Toast.LENGTH_LONG).show()
         //Toast.makeText(AppGeneral.CONTEXT,finishDate.toString(),Toast.LENGTH_LONG).show()
        //  Toast.makeText(AppGeneral.CONTEXT,TimeZone.getAvailableIDs().toString(),Toast.LENGTH_LONG).show()
@@ -209,10 +248,55 @@ class FirebaseAdmin {
             .whereLessThan("fecha", finishDate)
             .get()
             .addOnSuccessListener { result ->
-                for (pedido in result) {
-                    Toast.makeText(AppGeneral.CONTEXT,pedido["fecha"].toString(),Toast.LENGTH_LONG).show()
+                var cont = 0
+                for (item in result) {
+                    obtenerCliente(item["id_cliente"].toString(), object: FirebaseAdmin.ICallbackGetCliente {
+                        override fun onCallback(value: Cliente) {
+                            cont++
+                            val pedido = Pedido(value, item["productos"] as ArrayList<ItemCarrito>, item.id)
+                            pedidos.add(pedido)
+                            // Toast.makeText(AppGeneral.CONTEXT,value.getNombres().toString(),Toast.LENGTH_LONG).show()
+                            if (cont == result.size()) MyCallBack.onCallback(pedidos)
+                        }
+                    })
                 }
-                MyCallBack.onCallback(pedidos)
+            }
+            .addOnFailureListener() {
+                    exception ->
+                Toast.makeText(AppGeneral.CONTEXT,"No hay Registros",Toast.LENGTH_LONG).show()
+            }
+    }
+
+    fun obtenerPedido(pedido_id : String, MyCallBack: ICallbackGetPedido) {
+        var pedidos : ArrayList<Pedido> = ArrayList<Pedido>()
+        var listaProductos = ArrayList<Producto>()
+        var listaCantidades = ArrayList<Int>()
+        //Toast.makeText(AppGeneral.CONTEXT,startDate.toString(),Toast.LENGTH_LONG).show()
+        //Toast.makeText(AppGeneral.CONTEXT,finishDate.toString(),Toast.LENGTH_LONG).show()
+        //  Toast.makeText(AppGeneral.CONTEXT,TimeZone.getAvailableIDs().toString(),Toast.LENGTH_LONG).show()
+        val db = AppGeneral.DB
+        db.collection(AppGeneral.TABLEPEDIDONAME)
+            .document(pedido_id)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                val data = document.data
+                    val productos = data?.get("productos") as ArrayList<HashMap<String, Any?>>
+                   // val productos = dataProductos[1] as ArrayList<HashMap<String, Any?>>
+                    var cont = 0
+                    for (producto in productos) {
+                    obtenerProducto(producto.get("id_producto").toString(), object: ICallbackGetProducto {
+                        override fun onCallback(value: Producto) {
+                            val cantidad = if (producto.get("cantidad") != null) producto.get("cantidad").toString() else producto.get("candidad").toString()
+                            cont++
+                            listaProductos.add(value)
+                            listaCantidades.add(cantidad.toInt())
+                            // Toast.makeText(AppGeneral.CONTEXT,value.getNombres().toString(),Toast.LENGTH_LONG).show()
+                            if (cont == productos.size) MyCallBack.onCallback(listaProductos, listaCantidades)
+                        }
+                    })
+                }
+            }
             }
             .addOnFailureListener() {
                     exception ->

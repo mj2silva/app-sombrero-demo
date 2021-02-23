@@ -52,7 +52,7 @@ class ElegirFechaPedidoActivity : AppCompatActivity() {
                 intent.putExtra("month", month + 1)
                 intent.putExtra("dayOfMonth", dayOfMonth)
                 intent.putExtra("seconds", seconds)
-                AppGeneral.CONTEXT.startActivity(intent)
+                this.startActivity(intent)
             TimeZone.getAvailableIDs()
 
         }, mYear, mMonth, mDay)
